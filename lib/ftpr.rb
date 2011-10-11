@@ -1,2 +1,2 @@
 require "ftpr/version"
-require 'ftpr'
+require 'ftpr/ftpr'

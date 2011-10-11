@@ -1,5 +1,4 @@
 require 'fake_ftp'
-require 'net/ftp'
 require 'ftpr'
 
 describe "fetching a file" do
@@ -15,7 +14,7 @@ describe "fetching a file" do
   end
 
   it "fetches file from FTP server" do
-    file = Ftpr.get_file_contents("ftp://localhost:21212/testfile.txt")
+    file = Ftpr::FTP.get_file_contents("ftp://localhost:21212/testfile.txt")
     file.should == "data"
   end
 
