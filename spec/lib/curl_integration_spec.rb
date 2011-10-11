@@ -2,23 +2,32 @@ require 'fake_ftp'
 require 'ftpr'
 require 'ftpr/curl'
 
+require 'ftpd'
+
 describe "ftpget.c in ruby" do
   before(:all) do
 
-    @server = FakeFtp::Server.new(21212, 21213)
-    @server.start
-
-    @server.add_file("testfil.txt", "data")
+    Dir.chdir("spec/fixtures")
+    options = {
+      host: '127.0.0.1',
+      port: 12312,
+      clients: 5,
+      debug: true
+    }
+    thread = Thread.new do
+      @server = FTPServer.new(options)
+    end
+    sleep 1
   end
 
   
   it "works" do
     result = nil
-    callback = FFI::Function.new(:int, [:pointer, :int, :int, :pointer]) do |buffer, size, nmemb, stream|
+    callback = FFI::Function.new(:int, [:string, :int, :int, :pointer]) do |buffer, size, nmemb, stream|
       puts "asdfasdfdsf"
-      puts buffer.inspect
+      puts "BUFFER IS #{buffer.inspect}"
       result = buffer
-
+      buffer.length
     end
     
     global_init_result = Ftpr::CurlEasy.global_init(Ftpr::CurlEasy::Options::CURL_GLOBAL_ALL)
@@ -28,7 +37,7 @@ describe "ftpget.c in ruby" do
 
     puts curl.inspect
 
-    Ftpr::CurlEasy.setopt(curl, Ftpr::CurlEasy::Options::CURLOPT_URL, 'ftp://localhost:21212/testfil.txt')
+    Ftpr::CurlEasy.setopt(curl, Ftpr::CurlEasy::Options::CURLOPT_URL, 'ftp://localhost:12312/testfil.txt')
     Ftpr::CurlEasy.setopt(curl, Ftpr::CurlEasy::Options::CURLOPT_WRITEFUNCTION, callback)
     #Ftpr::CurlEasy.setopt(curl, Ftpr::CurlEasy::Options::CURLOPT_WRITEDATA, 'ftp://localhost:12312/testfil.txt')
     Ftpr::CurlEasy.setopt_long(curl, Ftpr::CurlEasy::Options::CURLOPT_VERBOSE, 1)
@@ -42,6 +51,7 @@ describe "ftpget.c in ruby" do
     Ftpr::CurlEasy.global_cleanup()
     
     result.should_not be_nil
+    result.should == "asdasd"
 
   end
 end
